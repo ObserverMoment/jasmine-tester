@@ -58,6 +58,7 @@ $(function() {
             slideMenu = $('.slide-menu'),
             body = $('body');
 
+
         /* TODO: Write a test that ensures the menu element is
          * hidden by default. You'll have to analyze the HTML and
          * the CSS to determine how we're performing the
@@ -85,27 +86,10 @@ $(function() {
             expect( body.hasClass('menu-hidden') ).toBe(true);
 
          });
-
-         it('checks that the slide-menu is actually moving on and off the page', function() {
-            jasmine.clock().install();
-            menuIconLink.trigger('click');
-            jasmine.clock().tick(2000);
-            expect( slideMenu.position().left >= 0 ).toBe(true);
-
-            // window.setTimeout(function() {
-            //     expect( slideMenu.position().left >= 0 ).toBe(true);
-            //
-            //     menuIconLink.trigger('click');
-            //     window.setTimeout(function() {
-            //         expect( slideMenu.position().left < 0 ).toBe(true);
-            //     }, 100);
-            //
-            // }, 100);
-         });
     });
 
     /* TODO: Write a new test suite named "Initial Entries" */
-
+    describe('Initial Entries', function() {
         /* TODO: Write a test that ensures when the loadFeed
          * function is called and completes its work, there is at least
          * a single .entry element within the .feed container.
@@ -113,34 +97,50 @@ $(function() {
          * the use of Jasmine's beforeEach and asynchronous done() function.
          */
 
+         // Call the loadFeed function on one of the feeds (0 is the init feed). Once it is complete call Jasmine done() as it's callback.
+         // This will trigger the 'it' test.
+         beforeEach(function(done) {
+            loadFeed(0, function() {
+                done();
+            });
+         });
+
+        // Check that the jQuery nodelist search returns at least one result for "entry" nodes in the "feed" div.
+        it('checks to make sure at least one entry has loaded from the feed', function(done) {
+            expect( $('.feed .entry').length > 0 ).toBe(true);
+            done();
+        });
+    });
+
     /* TODO: Write a new test suite named "New Feed Selection"
 
         /* TODO: Write a test that ensures when a new feed is loaded
          * by the loadFeed function that the content actually changes.
          * Remember, loadFeed() is asynchronous.
          */
-}());
+    describe('New Feed Selection', function() {
+        var firstFeedContent, secondFeedContent;
 
-// describe("Button Click Event Tests", function() {
-//   var spyEvent;
-//
-//   beforeEach(function() {
-//     setUpHTMLFixture();
-//   });
-//
-//   it ("should invoke the btnShowMessage click event.", function() {
-//     spyEvent = spyOnEvent('#btnShowMessage', 'click');
-//     $('#btnShowMessage').trigger( "click" );
-//
-//     expect('click').toHaveBeenTriggeredOn('#btnShowMessage');
-//     expect(spyEvent).toHaveBeenTriggered();
-//   });
-//
-//   it ("should invoke the btnHideMessage click event.", function() {
-//     spyEvent = spyOnEvent('#btnHideMessage', 'click');
-//     $('#btnHideMessage').trigger( "click" );
-//
-//     expect('click').toHaveBeenTriggeredOn('#btnHideMessage');
-//     expect(spyEvent).toHaveBeenTriggered();
-//   });
-// });
+        beforeEach(function(done) {
+            // Call the loadFeed function to populate the test DOM with articles from feed 0.
+           loadFeed(0, function() {
+               // Get the innerText of the title of the first article.
+               firstFeedContent = $('.feed .entry').find('h2')[0].innerText;
+               // Then call loadFeed again on a different feed index - passing along the Jasmine done function as its optional callback.
+               loadFeed(1, done);
+           });
+        });
+
+        it('checks that content changes after calling loadFeed on non initial feed', function(done) {
+            // Once the beforeEach calls are completed - get the innerText of the title of the first article now displaying.
+            secondFeedContent = $('.feed .entry').find('h2')[0].innerText;
+            // Check that both variables have been defined correctly for testing.
+            expect(firstFeedContent).toBeDefined();
+            expect(secondFeedContent).toBeDefined();
+            // Check to see that the content has changed.
+            expect( firstFeedContent == secondFeedContent ).toBe(false);
+            done();
+        });
+    });
+
+}());
